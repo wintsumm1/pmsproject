@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pm.dao.DashboardDao">
+<select id="getManpower" resultType="int">
+SELECT count(*) 
+FROM (
+	SELECT DISTINCT m.NO, m.name 
+	FROM member06 m, project p 
+	WHERE m.NO = p.OWNER_ID
+)
+</select>
+<select id="getMemberCnt" resultType="int">
+select count(*) from member06
+</select>
+<select id="getProgress" resultType="int" parameterType="int">
+SELECT CEIL(avg(progress)*100) 
+FROM project 
+WHERE PARENT=#{id} OR id=#{id}
+</select>
+<select id="getHistory" resultType="history">
+SELECT * FROM history
+ORDER BY htime desc
+</select>
+<insert id="insertHistroy" parameterType="history">
+insert into history values(history_seq.nextval, #{hname}, #{htype}, sysdate, #{hcolor})
+</insert>
+</mapper>

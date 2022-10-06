@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pm.dao.GanttDao">
+	
+	<resultMap type="gantt" id="ganttResult">
+		<result column="open1" property="open"/>
+	</resultMap>
+	
+	<parameterMap type="gantt" id="ganttParam">
+		<parameter  javaType="int" property="open"/>
+	</parameterMap>
+	
+	<resultMap type="calendar" id="calResult">
+		<result column="start1" property="start"/>
+		<result column="end1" property="end"/>
+	</resultMap>
+	
+	<select id="getStatus" resultType="status">
+		select * from status
+	</select>
+	
+	<select id="getGantt" resultMap="ganttResult" parameterType="gantt">
+		SELECT p.id, text, start_date, duration, parent, progress, open1,
+		contents, createdAt, DISPLAY_ORDER ,m.no owner_id, m.NAME ownerName,
+		STATUS_NO, s.STATUSNAME , s.BACKGROUND color, priority
+		FROM PROJECT p, MEMBER06 m , STATUS s 
+		WHERE 1=1
+		AND m.NO(+) = p.OWNER_ID
+		AND s.NO = p.STATUS_NO
+		ORDER BY DISPLAY_ORDER ASC
+	</select>
+	
+	<select id="getParentGantt" resultMap="ganttResult" parameterType="gantt">
+		SELECT p.id, text, start_date, duration, end_date,parent, progress, open1, priority,
+		contents, createdAt, DISPLAY_ORDER ,m.no owner_id, m.NAME ownerName,
+		STATUS_NO, s.STATUSNAME , s.BACKGROUND color, pr.pname, pr.pcolor
+		FROM PROJECT p, MEMBER06 m , STATUS s, priority pr
+		WHERE 1=1
+		AND m.NO(+) = p.OWNER_ID
+		AND s.NO = p.STATUS_NO
+		AND parent = 0
+		AND pr.pno = p.priority
+		ORDER BY createdAt DESC
+	</select>
+	
+	<select id="getProject" resultMap="ganttResult" parameterType="int">
+		SELECT p.id, text, start_date, duration, end_date,parent, progress, open1, priority,
+		contents, createdAt, DISPLAY_ORDER ,m.no owner_id, m.NAME ownerName,
+		STATUS_NO, s.STATUSNAME , s.BACKGROUND color, pr.pcolor
+		FROM PROJECT p, MEMBER06 m , STATUS s, priority pr
+		WHERE 1=1
+		AND m.NO(+) = p.OWNER_ID
+		AND s.NO = p.STATUS_NO
+		AND parent = 0
+		and p.id=#{id}
+		and pr.pno = p.priority
+		ORDER BY createdAt DESC
+	</select>
+	
+	<update id="updateParentGantt" parameterType="gantt">
+		update project
+			set text = #{text},
+				owner_id = #{owner_id},
+				status_no = #{status_no},
+				start_date = #{start_date},
+				duration = #{duration},
+				end_date = #{end_date},
+				contents = #{contents},
+				priority = #{priority}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<select id="schGantt" resultMap="ganttResult" parameterType="int">
+		SELECT p.id, text, start_date, duration, end_date, parent, progress, open1,
+		contents, createdAt, DISPLAY_ORDER ,m.no owner_id, m.NAME ownerName,
+		STATUS_NO, s.STATUSNAME , s.BACKGROUND color, priority
+		FROM PROJECT p, MEMBER06 m , STATUS s 
+		WHERE 1=1
+		AND m.NO(+) = p.OWNER_ID
+		AND s.NO = p.STATUS_NO
+		START WITH p.id = #{id}
+		CONNECT BY PRIOR p.id = p.PARENT 
+		ORDER BY DISPLAY_ORDER
+	</select>
+	
+	<insert id="insertProject" parameterType="gantt">
+		insert into project(id, owner_id, status_no, text, start_date,
+		duration, end_date, parent, priority,progress, open1, contents, createdAt)
+		values (project_seq.nextval, #{owner_id}, #{status_no},#{text}, 
+		#{start_date}, #{duration}, #{end_date}, 0, #{priority} ,0, 1, #{contents}, sysdate)
+	</insert>
+	
+	<insert id="insertGantt" parameterMap="ganttParam">
+		insert into project(
+		id, owner_id, status_no, text, start_date,
+		duration, end_date, parent, progress, open1, 
+		contents, createdAt, display_order
+		) 
+		values (
+		project_seq.nextval, #{owner_id}, #{status_no},#{text}, #{start_date},
+		#{duration}, #{end_date}, #{parent}, 0, 1, 
+		#{contents}, sysdate, #{display_order}
+		)
+	</insert>
+	
+	<update id="updateGantt" parameterMap="ganttParam">
+		update project
+			set text = #{text},
+				owner_id = #{owner_id},	
+				status_no = #{status_no},
+				start_date = #{start_date},
+				duration = #{duration},
+				end_date = #{end_date},
+				parent = #{parent},
+				contents = #{contents},
+				progress = #{progress},
+				open1 = #{open},
+				priority = #{priority},
+				display_order = #{display_order}
+			where id = #{id}
+	</update>
+	
+	<delete id="deleteGantt" parameterType="int">
+		delete from project
+		WHERE id in (
+			SELECT id FROM PROJECT p
+			START WITH id = #{id}
+			CONNECT BY PRIOR id = PARENT 
+		)
+	</delete>
+	<!-- 
+	<select id="getGanttToCalList" resultMap="calResult">
+		SELECT p.id, text, start_date, duration, parent, 
+		progress, open1, contents, createdAt, DISPLAY_ORDER, 
+		m.ID , m.NAME , STATUS_NO, s.STATUSNAME , s.BACKGROUND backgroundColor
+		FROM PROJECT p, MEMBER06 m , STATUS s 
+		WHERE 1=1
+		AND m.NO(+) = p.OWNER_ID
+		AND s.NO = p.STATUS_NO
+		ORDER BY DISPLAY_ORDER ASC
+	</select>
+	-->
+	
+	<select id="getCalList" resultMap="calResult" parameterType="calendar">
+		SELECT o.id, member_no , title, start1, end1, content, BACKGROUNDCOLOR, m.name, m.DEPTNO, allday, textColor
+		FROM OWNSCHEDULE o, MEMBER06 m
+		WHERE 1 = 1
+		AND m.NO = o.MEMBER_NO
+		<if test="member_no!=null">
+		AND m.no = #{member_no}
+		</if>
+		union all
+		SELECT p.id id, m.no member_no, text title, start_date start1, end_date end1, contents content,  
+		background BACKGROUNDCOLOR, m.name, m.DEPTNO , 1 as allday, '#ffffff' as textColor
+		FROM PROJECT p, MEMBER06 m , STATUS s
+		where 1 = #{visibility}
+		AND m.NO(+) = p.OWNER_ID
+		AND s.NO = p.STATUS_NO
+		<if test="member_no!=null">
+		AND m.no = #{member_no}
+		</if>
+	</select>
+	<!--1	1000	개인일정	2022-08-05	2022-08-05	언제하냐	#e5e5e5	#4162FF	1-->
+	<insert id="insertCalendar" parameterType="calendar">
+		insert into ownSchedule values(ownSchedule_seq.nextval, 
+		#{member_no}, #{title}, #{start} , #{end}, 
+		#{content}, #{backgroundColor}, #{textColor}, #{allDay}) 
+	</insert>
+	
+	<update id="updateCalendar" parameterType="calendar">
+		update ownSchedule
+			set title = #{title},
+				start1 = #{start},
+				end1 = #{end},
+				content = #{content},
+				backgroundColor = #{backgroundColor}, 
+				textColor = #{textColor}, 
+				allDay = #{allDay}
+			where id = #{id}
+	</update>
+	
+	<delete id="deleteCalendar" parameterType="int">
+		delete from ownSchedule where id = #{id}
+	</delete>
+	
+	<select id="countReqProject" resultType="int">
+		select count(*) from project
+		where status_no = 1
+	</select>
+	
+	<select id="countProProject" resultType="int">
+		select count(*) from project
+		where status_no = 2
+	</select>
+	
+	<select id="countComProject" resultType="int">
+		select count(*) from project
+		where status_no = 3
+	</select>
+	
+	<select id="countFeedProject" resultType="int">
+		select count(*) from project
+		where status_no = 4
+	</select>
+	
+	<select id="countParentReq" resultType="int">
+		select count(*) from project
+		where status_no = 1 and parent = 0
+	</select>
+	
+	<select id="countParentProc" resultType="int">
+		select count(*) from project
+		where status_no = 2 and parent = 0
+	</select>
+	
+	<select id="countParentComp" resultType="int">
+		select count(*) from project
+		where status_no = 3 and parent = 0
+	</select>
+	
+	<select id="countParentFdback" resultType="int">
+		select count(*) from project
+		where status_no = 4 and parent = 0
+	</select>
+	
+	<select id="getProgress" parameterType="int" resultType="int">
+		SELECT CEIL(avg(progress)*100) 
+		FROM project 
+		WHERE PARENT=#{id} OR id=#{id}
+	</select>
+	
+	<select id="getMainPrj" resultType="gantt">
+	SELECT p.text, CEIL(p.PROGRESS*100) PROGRESS, s.BACKGROUND color
+	FROM project p, STATUS s 
+	WHERE PARENT = 0
+	AND p.STATUS_NO = s."NO" 
+	AND progress > 0 AND (PROGRESS*100) != 100
+	</select>
+	
+	
+	
+</mapper>

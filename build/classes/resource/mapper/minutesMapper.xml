@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pm.dao.MinutesDao">	
+	<!-- public List<Minutes> totCnt(MinutesSch sch); -->
+	<select id="totCnt" parameterType="minutessch"  resultType="int">	 
+		SELECT count(*)
+		FROM minutes m, member06 b
+		WHERE 1=1		
+		AND m.NO = b.NO  
+		<if test="title!=null">
+		AND title LIKE '%'||#{title}||'%'
+		</if>
+		<if test="writer!=null">
+		AND writer LIKE '%'||#{writer}||'%'
+		</if>			 	 			 
+	</select>	
+	
+	<select id="minutesList" parameterType="minutessch" resultType="minutes"  >	
+		SELECT * 
+		FROM (
+			 SELECT rownum cnt, m.*
+			 FROM minutes m, member06 b
+			 WHERE 1=1
+			 AND m.NO = b.NO  
+			 ORDER BY minutesno DESC)
+	</select>	
+	
+	<insert id="insertMinutes" parameterType="minutes">
+		INSERT INTO 
+		MINUTES
+		VALUES (minutesno_seq.nextval, #{no}, 
+		#{title}, #{contents}, #{writer},
+		#{minutesMember},
+		0, sysdate, sysdate )		
+	</insert>	
+	
+	<select id="getMinutesDetail" parameterType="int" resultType="minutes">
+		SELECT *
+		FROM minutes
+		WHERE minutesno = #{minutesno}	
+	</select>
+	<update id="readCountup" parameterType="int">
+		UPDATE minutes
+		SET readcnt = readcnt+1
+		WHERE minutesno = #{minutesno}	
+	</update>	
+	<update id="updateMinutes" parameterType="minutes">
+		UPDATE minutes
+		   SET title = #{title},
+			   contents = #{contents},
+			   uptdte = sysdate
+		WHERE minutesno = #{minutesno}	
+	</update>
+	<delete id="deleteMinutes" parameterType="int">
+		DELETE
+		FROM minutes
+		WHERE minutesno = #{minutesno}	
+	</delete>			
+</mapper>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pm.dao.RiskDao">
+	<select id="totCnt" parameterType="risksch" resultType="int">
+		SELECT
+		count(*)
+		FROM risk r, MEMBER06 m ,PROJECT p
+		WHERE 1=1
+		AND
+		r.id=p.id
+		AND
+		r.reqmemno=m.NO
+		order by risk_no desc
+	</select>
+	<select id="hugaCnt" parameterType="risksch" resultType="int">
+		SELECT
+		count(*)
+		FROM risk r, MEMBER06 m ,PROJECT p
+		WHERE 1=1
+		AND
+		r.id=p.id
+		AND
+		r.reqmemno=m.NO
+		and r.REQ_CAUSE = '휴가'
+	</select>
+	<select id="sickCnt" parameterType="risksch" resultType="int">
+		SELECT
+		count(*)
+		FROM risk r, MEMBER06 m ,PROJECT p
+		WHERE 1=1
+		AND
+		r.id=p.id
+		AND
+		r.reqmemno=m.NO
+		and r.REQ_CAUSE = '병가'
+
+	</select>
+	<select id="etcCnt" parameterType="risksch" resultType="int">
+		SELECT
+		count(*)
+		FROM risk r, MEMBER06 m ,PROJECT p
+		WHERE 1=1
+		AND
+		r.id=p.id
+		AND
+		r.reqmemno=m.NO
+		and r.REQ_CAUSE = '기타'
+	</select>
+	<select id="perCnt" parameterType="risksch" resultType="int">
+		SELECT
+		count(*)
+		FROM risk r, MEMBER06 m ,PROJECT p
+		WHERE 1=1
+		AND
+		r.id=p.id
+		AND
+		r.reqmemno=m.NO
+		and r.REQ_CAUSE = '개인사유'
+	</select>
+	<select id="riskList" resultType="risk" parameterType="risksch">
+		select risksch.*
+		from (select a.*, m.name repname
+		from (
+		select rownum
+		cnt, p.TEXT project, m.NAME requser, r.*
+		FROM risk r, MEMBER06 m
+		,PROJECT p
+		WHERE 1=1
+		AND
+		r.id=p.id
+		AND r.reqmemno=m.NO
+		)
+		a, member06 m
+		WHERE
+		a.repmemno = m.NO
+		ORDER BY risk_no desc) risksch
+		<!-- select risksch.* from (select a.*, m.name repname from ( select ROW_NUMBER() 
+			OVER(ORDER BY risk_no desc) AS cnt, p.TEXT project, m.NAME requser, r.* FROM 
+			risk r, MEMBER06 m ,PROJECT p WHERE 1=1 AND r.id=p.id AND r.reqmemno=m.NO 
+			<if test="requser!=null"> AND name like '%'||#{requser}||'%' </if> <if test="project!=null"> 
+			AND text like '%'||#{project}||'%' </if> ) a, member06 m WHERE a.repmemno 
+			= m.NO ORDER BY risk_no desc) risksch -->
+	</select>
+	<insert id="insertRisk" parameterType="risk">
+		INSERT INTO risk
+		values(risk_seq.nextval,
+		#{proid},
+		#{reqmemno},
+		sysdate,
+		#{totdate},#{req_cause},#{situation},#{repmemno},#{companion})
+	</insert>
+	<update id="updateRisk" parameterType="risk">
+		UPDATE RISK
+		SET situation =
+		#{situation},
+		companion = #{companion}
+		WHERE risk_no =
+		#{risk_no}
+	</update>
+	<update id="updateProject" parameterType="risk">
+		update project
+		set
+		owner_id = #{owner_id}
+		where id = #{id}
+	</update>
+	<delete id="deleteRisk" parameterType="int">
+		delete
+		from risk
+		where
+		risk_no = #{risk_no}
+	</delete>
+	<select id="userProject" resultType="gantt" parameterType="risk">
+		SELECT *
+		FROM project
+		WHERE OWNER_ID like #{owner_id}
+	</select>
+</mapper>

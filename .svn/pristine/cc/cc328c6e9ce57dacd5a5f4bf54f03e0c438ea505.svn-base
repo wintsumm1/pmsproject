@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+  <mapper namespace="pm.dao.MemberDao">
+   <!--  초기 화면 -->
+  	<select id="memberlist" resultType="member" parameterType="member">
+		SELECT m.*,d.dept,d.comno, c.companyName, c.companyTel
+		FROM member06 m, dept06 d, company06 c
+		WHERE 1=1
+		and m.deptno = d.deptno(+)
+		AND d.comno = c.comno(+)
+		<if test="name!=null">
+		AND name LIKE '%'||#{name}||'%'
+		</if>
+		order by no
+  	</select>
+  	<select id="memberlist2" resultType="member" parameterType="member">
+		SELECT m.*,d.dept,d.comno, c.companyName, c.companyTel
+		FROM member06 m, dept06 d, company06 c
+		WHERE 1=1
+		and m.deptno = d.deptno(+)
+		AND d.comno = c.comno(+)
+		and id=#{id}
+		and pass=#{pass}
+		order by no
+  	</select>
+  	<!-- 상세 페이지 -->
+  	<select id = "getMemberDetail" resultType = "member" parameterType="int">
+	  	SELECT m.*,d.dept,d.comno, c.companyName, c.companyTel
+		FROM member06 m, dept06 d, company06 c
+		WHERE m.deptno = d.deptno(+)
+		AND d.comno = c.comno(+) 
+		AND m.NO = #{no}
+  	</select>
+  	<!-- 수정  -->
+  	<update id = "updateMember" parameterType="member">
+	  	UPDATE MEMBER06 
+		SET name = #{name},
+			<if test = "deptno!=null">
+				<if test = "dept!=null">
+					<if test="comno!=null">
+			deptno = (SELECT deptno FROM dept06 WHERE dept = #{dept} AND comno = 
+			(SELECT comno FROM company06 WHERE companyName=#{companyName})),
+					</if>
+				</if>
+			</if>
+			tel = #{tel},
+			auth = #{auth},
+			mrg = #{mrg},
+			<if test = "memberimg!=null">
+			memberimg = #{memberimg}
+			</if>
+		WHERE no = #{no}
+  	</update>
+
+  	<!--  삭제 -->
+  	<delete id="deleteMember" parameterType="int">
+	  	DELETE 
+		FROM member06 
+		WHERE NO = #{no}
+  	</delete>
+  	<!-- 추가 -->
+  	  <insert id = "insertMember" parameterType="member">
+	  INSERT INTO member06 values(NO_seq.nextval,
+	  <if test = "dept!=null">
+	  <if test = "companyName !=null">
+		(SELECT deptno FROM dept06 WHERE dept = #{dept} AND comno =
+		(SELECT comno FROM company06 WHERE companyName = #{companyName}))
+	  </if>
+	  </if>
+		,#{id},#{pass},#{name},#{auth},#{tel},#{mrg},#{memberimg})
+ 	 </insert>
+ 	 <!-- 부서명  -->
+ 	 <select id = "getDept" resultType ="member" parameterType = "string">
+ 	    SELECT d.*, c.companyName, c.companyTel
+		FROM dept06 d, company06 c
+		WHERE d.comno(+) = c.comno
+		<if test ="companyName!=null">
+		AND companyName = #{companyName}
+		</if>
+ 	 </select>
+ 	 <!-- 회사 멤버수, 관리자 리스트 -->
+ 	 <select id="orgGroup" resultType="member" parameterType="member">
+		SELECT m.name,m.memberimg, m.auth,c.companyName,(SELECT count(NO)
+		FROM member06 mm, dept06 dd, company06 cc
+		WHERE mm.deptno = dd.deptno(+)
+		AND dd.comno = cc.comno(+)
+		<if test="companyName!=null">
+		AND c.companyName =#{companyName}
+		</if>
+		) countGroup
+		FROM member06 m, dept06 d, company06 c
+		WHERE m.deptno = d.deptno(+)
+		AND d.comno = c.comno(+)
+		<if test="companyName1!=null">
+		AND c.companyName =#{companyName1}
+		</if>
+		AND m.auth = 'admin'
+ 	 </select>
+ 	 <!-- 부서별 인원수  -->
+ 	 <select id="groupList" resultType="member" parameterType="member">
+		SELECT count(no) deptCount, d.dept, d.deptno, c.companyName
+		FROM member06 m, dept06 d, company06 c
+		WHERE m.deptno(+) = d.deptno
+		AND d.comno(+) = c.comno
+		<if test="companyName!=null">
+		AND companyName=#{companyName}
+		</if>
+		GROUP BY d.dept, d.deptno,c.companyName
+		ORDER BY d.deptno
+ 	 </select>
+ 	 <!-- 부서 생성 -->
+ 	 <insert id="createDept" parameterType="member">
+ 	 INSERT INTO dept06 values(dept06_seq.nextval,#{dept},
+ 	 <if test="companyName!=null">
+ 	 (SELECT comno FROM company06 WHERE companyName = #{companyName}))
+ 	 </if>
+ 	 </insert>
+ 	 <!-- 부서 상세 -->
+ 	 <select id="getdetailDept" resultType="Member" parameterType="Integer">
+ 	    SELECT d.*,c.companyName, c.companyTel
+		FROM dept06 d, company06 c
+		WHERE d.comno = c.comno(+)
+		AND d.deptno = #{deptno}
+ 	 </select>
+ 	 <!-- 부서 삭제 -->
+ 	 <delete id="deleteDept" parameterType="member">
+		DELETE 
+		FROM dept06 
+		WHERE deptno = #{deptno}
+ 	 </delete>
+ 	 <!-- 부서 이름 수정 -->
+
+ 	 <update id="updateDept" parameterType="member">
+ 	 UPDATE dept06
+		SET dept = #{dept},
+		<if test = "companyName!=null">
+			comno = (SELECT comno FROM company06 WHERE companyName = #{companyName})
+		</if>
+	 WHERE deptno=#{deptno}
+ 	 </update>
+ 	 <!-- 아이디 유효성 검사 -->
+	<select id="getId" resultType="int" parameterType="string">
+		select count(*) from member06 where id = #{id}
+	</select>
+
+
+  </mapper>

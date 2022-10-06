@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <typeAliases >
+	    <!-- 간트 Mapper -->
+		<typeAlias alias="gantt" type="pm.vo.Gantt"/>
+		<typeAlias alias="calendar" type="pm.vo.Calendar"/>
+		<typeAlias alias="status" type="pm.vo.Status"/>
+		<typeAlias alias="testmember" type="pm.vo.TestMember"/>
+		<typeAlias alias="risk" type="pm.vo.Risk"/>
+		<typeAlias alias="risksch" type="pm.vo.RiskSch"/>
+		<typeAlias alias="member" type="pm.vo.Member"/>
+		<typeAlias alias="minutes" type="pm.vo.Minutes"/>
+		<typeAlias alias="minutessch" type="pm.vo.MinutesSch"/>
+		<typeAlias alias="issue" type="pm.vo.Issue"/>
+		<typeAlias alias="issuesch" type="pm.vo.IssueSch"/>
+		<typeAlias alias="issuefile" type="pm.vo.IssueFile"/>
+		<typeAlias alias="notice" type="pm.vo.Notice"/>
+		<typeAlias alias="dashboard" type="pm.vo.Dashboard"/>
+		<typeAlias alias="analystics" type="pm.vo.Analystics"/>
+		<typeAlias alias="history" type="pm.vo.History"/>
+	</typeAliases>
+    <mappers>
+    	<!-- 테스트 Mapper -->
+        <mapper resource="resource/mapper/testMapper.xml"/>
+    	<!-- 간트 Mapper -->
+        <mapper resource="resource/mapper/ganttMapper.xml"/>
+        <!-- sidebar Mapper -->
+        <mapper resource="resource/mapper/sideBarMapper.xml"/>
+        <!-- 캘린더 Mapper -->
+        <!--<mapper resource="resource/mapper/calendarMapper.xml"/> -->
+        <!-- 리스크 Mapper -->
+        <mapper resource="resource/mapper/riskMapper.xml"/>
+        <!-- 사원리스트 mapper -->
+        <mapper resource="resource/mapper/MemberMapper.xml"/>
+        <!-- 회의록 mapper -->
+        <mapper resource="resource/mapper/minutesMapper.xml"/>        
+        <!-- 이슈 mapper -->
+        <mapper resource="resource/mapper/issueMapper.xml"/>
+        <!-- 공지사항 mapper -->
+        <mapper resource="resource/mapper/noticeMapper.xml"/>
+        <!--  로그인 -->
+        <mapper resource="resource/mapper/loginMapper.xml"/>
+        <!-- 대시보드 -->
+        <mapper resource="resource/mapper/DashboardMapper.xml"/>
+    </mappers>
+</configuration>	
